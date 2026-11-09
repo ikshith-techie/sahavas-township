@@ -18,6 +18,8 @@ test("parses quoted CSV fields and escaped quotes", () => {
 test("statement matching requires an exact balance and a flat or UPI identifier", () => {
   const flats = [{ id: "T07-1203", resident: "Neeraj", upi_id: "neeraj@upi", balance: 7475 }];
   assert.equal(matchStatementRow({ amount: 7475, reference: "T07-1203", upiId: "" }, flats).status, "Ready to post");
+  assert.equal(matchStatementRow({ amount: 7475, reference: "T07-1203", upiId: "someone-else@upi" }, flats).status, "Needs review");
+  assert.equal(matchStatementRow({ amount: 7475, reference: "transfer", upiId: "neeraj@upi" }, flats).status, "Ready to post");
   assert.equal(matchStatementRow({ amount: 7475, reference: "unknown", upiId: "" }, flats).status, "Needs review");
   assert.equal(matchStatementRow({ amount: 500, reference: "T07-1203", upiId: "" }, flats).status, "Unmatched");
 });

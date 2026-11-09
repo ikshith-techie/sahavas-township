@@ -65,15 +65,16 @@ function matchStatementRow(row, flats) {
   const reference = String(row.reference || "").toLowerCase();
   const upiId = String(row.upiId || "").trim().toLowerCase();
   const amountMatches = flats.filter((flat) => flat.balance === row.amount);
-  const identified = amountMatches.filter((flat) => {
-    const flatRef = reference.includes(flat.id.toLowerCase());
-    const upiRef = upiId && upiId === flat.upi_id.toLowerCase();
-    return flatRef || upiRef;
-  });
-  if (identified.length === 1) {
-    return { status: "Ready to post", flatId: identified[0].id, resident: identified[0].resident, reason: "Exact balance and flat or verified UPI reference." };
+  const referencedFlats = flats.filter((flat) => reference.includes(flat.id.toLowerCase()));
+  const upiMatches = flats.filter((flat) => upiId && upiId === flat.upi_id.toLowerCase());
+  if (referencedFlats.length > 1 || upiMatches.length > 1 ||
+      (referencedFlats.length && upiId && (upiMatches.length !== 1 || upiMatches[0].id !== referencedFlats[0].id))) {
+    return { status: "Needs review", flatId: null, resident: null, reason: "Flat reference and UPI ID are missing, ambiguous or conflict." };
   }
-  if (identified.length > 1) return { status: "Needs review", flatId: null, resident: null, reason: "More than one flat matches these references." };
+  const identified = referencedFlats[0] || upiMatches[0];
+  if (identified && amountMatches.some((flat) => flat.id === identified.id)) {
+    return { status: "Ready to post", flatId: identified.id, resident: identified.resident, reason: "Exact balance and verified flat reference." };
+  }
   if (amountMatches.length) return { status: "Needs review", flatId: null, resident: null, reason: "Amount matches, but the flat reference or UPI ID is missing or different." };
   return { status: "Unmatched", flatId: null, resident: null, reason: "No outstanding flat balance matches this amount and reference." };
 }
