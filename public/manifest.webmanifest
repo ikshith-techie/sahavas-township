@@ -1,0 +1,12 @@
+{
+  "name": "Sahavas Township",
+  "short_name": "Sahavas",
+  "description": "Maintenance and community support for your Sahavas home.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f5f7f4",
+  "theme_color": "#163b35",
+  "icons": [
+    { "src": "/mark.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "name": "sahavas-township",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Resident maintenance, complaints, and payment matching demo",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=22.5"
+  }
+}
