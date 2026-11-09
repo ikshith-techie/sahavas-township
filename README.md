@@ -15,7 +15,7 @@ Open `http://127.0.0.1:3000`. Demo logins, environment variable names, workflows
 
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/ikshith-techie/sahavas-township)
 
-The Render blueprint uses a Free web service. Its SQLite storage is ephemeral and data can reset on restart/redeploy; do not use it for durable records or real personal/financial data.
+Live demo: [sahavas-township.onrender.com](https://sahavas-township.onrender.com). The Render blueprint uses a Free web service. Its SQLite storage is ephemeral and data can reset on restart/redeploy; do not use it for durable records or real personal/financial data.
 
 ## Important demo limits
 

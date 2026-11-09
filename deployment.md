@@ -37,12 +37,12 @@ The repository includes a Render Blueprint in `render.yaml`, configured for a Si
 
 1. Sign in to Render and authorize access to the public `ikshith-techie/sahavas-township` GitHub repository.
 2. Open the [Render deployment flow](https://render.com/deploy?repo=https://github.com/ikshith-techie/sahavas-township), review that the web service plan is **Free**, then confirm creation if you accept the limitations below.
-3. Wait for the service deploy to finish. Open the `onrender.com` URL shown on the Render service page and check `/healthz` returns `{"status":"ok"}`.
+3. The current live app is [https://sahavas-township.onrender.com](https://sahavas-township.onrender.com). Check `/healthz` returns `{"status":"ok"}` after the free service wakes.
 4. Sign in with the demo credentials above. The app intentionally uses synthetic data only. Do not put resident data, real payment records, visitor data, or production credentials into this demo.
 
 **Free-tier data loss is expected.** Free web services do not support persistent disks. SQLite, payment history, complaint changes and bank import previews live on ephemeral instance storage and may reset after a restart, sleep/wake, redeploy or instance replacement. This setup is for a disposable reviewer demo only—not durable accounting records. Seed rows are recreated when a fresh database is initialized.
 
-The GitHub repository is public. A Render account is now signed in, but this workspace has not completed resource creation; the owner must review the free-plan selection and confirm creation. After deployment, add the Render URL to the TDD.
+The GitHub repository is public and the Render Free service is deployed.
 
 This deployment is a demo, not production-ready financial or resident-data infrastructure. Authentication, the OTP and test payments remain mocks. Do not use real resident, visitor, payment or contact data.
 
