@@ -159,6 +159,12 @@ async function handle(req, res) {
   const method = req.method;
   const route = url.pathname;
   try {
+    if (method === "GET" && route === "/healthz") {
+      db.prepare("SELECT 1").get();
+      res.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
+      res.end(JSON.stringify({ status: "ok" }));
+      return;
+    }
     if (method === "GET" && route === "/api/session") {
       const sessionId = cookies(req).session;
       const session = sessionId && sessions.get(sessionId);

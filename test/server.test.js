@@ -22,6 +22,12 @@ test.after(async () => {
   fs.rmSync(dataDir, { recursive: true, force: true });
 });
 
+test("deployment health check confirms the server and database are ready", async () => {
+  const { response, body } = await request("/healthz");
+  assert.equal(response.status, 200);
+  assert.equal(body.status, "ok");
+});
+
 async function request(route, options = {}, cookie = "") {
   const response = await fetch(`${origin}${route}`, {
     ...options,
