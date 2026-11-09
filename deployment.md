@@ -31,18 +31,20 @@ The local demo has defaults; these variables may be set by the runtime. Names on
 
 `NODE_ENV=production` enables the Secure cookie attribute and therefore requires HTTPS. Changing demo credentials does not make the mock OTP/password flow suitable for production.
 
-## Deploy to Render
+## Deploy to Render (free demo)
 
-The repository includes a Render Blueprint in `render.yaml`, configured for a Singapore-region Starter web service and a 1 GB persistent disk mounted at `/var/data`. The disk is required so the SQLite ledger survives service restarts. This is a paid configuration; check Render's current service and disk pricing before confirming. The blueprint sets `NODE_ENV=production` (HTTPS-only Secure session cookies), binds to `0.0.0.0`, stores the database on the persistent disk, and health-checks `/healthz`.
+The repository includes a Render Blueprint in `render.yaml`, configured for a Singapore-region **Free** web service. It binds to `0.0.0.0`, sets `NODE_ENV=production` (HTTPS-only Secure session cookies), places SQLite under `/tmp/sahavas-data`, and health-checks `/healthz`.
 
 1. Sign in to Render and authorize access to the public `ikshith-techie/sahavas-township` GitHub repository.
-2. Open the [Render deployment flow](https://render.com/deploy?repo=https://github.com/ikshith-techie/sahavas-township), review the Blueprint resources and current price, then explicitly confirm creation.
+2. Open the [Render deployment flow](https://render.com/deploy?repo=https://github.com/ikshith-techie/sahavas-township), review that the web service plan is **Free**, then confirm creation if you accept the limitations below.
 3. Wait for the service deploy to finish. Open the `onrender.com` URL shown on the Render service page and check `/healthz` returns `{"status":"ok"}`.
 4. Sign in with the demo credentials above. The app intentionally uses synthetic data only. Do not put resident data, real payment records, visitor data, or production credentials into this demo.
 
-The GitHub repository is public; no Render account or deploy authorization is connected to this workspace, so a live URL cannot be claimed until the owner completes the provider authorization and paid-resource confirmation. After deployment, add the Render URL to the TDD and replace “Not deployed.”
+**Free-tier data loss is expected.** Free web services do not support persistent disks. SQLite, payment history, complaint changes and bank import previews live on ephemeral instance storage and may reset after a restart, sleep/wake, redeploy or instance replacement. This setup is for a disposable reviewer demo only—not durable accounting records. Seed rows are recreated when a fresh database is initialized.
 
-This deployment is a demo, not production-ready financial or resident-data infrastructure. The persistent disk protects against ordinary service restarts, but is not a backup or disaster-recovery strategy. Authentication, the OTP and test payments remain mocks. Do not use real resident, visitor, payment or contact data.
+The GitHub repository is public. A Render account is now signed in, but this workspace has not completed resource creation; the owner must review the free-plan selection and confirm creation. After deployment, add the Render URL to the TDD.
+
+This deployment is a demo, not production-ready financial or resident-data infrastructure. Authentication, the OTP and test payments remain mocks. Do not use real resident, visitor, payment or contact data.
 
 ## Demo workflow
 
