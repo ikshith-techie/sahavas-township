@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Sahavas | Technical Design Document</title>
+<style>
+@page { size: A4; margin: 17mm 17mm 18mm; }
+* { box-sizing: border-box; }
+body { margin: 0; color: #23332d; font: 10pt/1.53 "Segoe UI", Arial, sans-serif; }
+h1,h2,h3 { font-family: "Segoe UI", Arial, sans-serif; color: #163b35; }
+h1 { font-size: 30pt; line-height: 1.08; letter-spacing: -1.5px; margin: 9mm 0 3mm; }
+h2 { font-size: 16pt; line-height: 1.2; margin: 9mm 0 3mm; border-bottom: 1px solid #e4ebe4; padding-bottom: 2mm; break-after: avoid; }
+h3 { font-size: 11pt; margin: 4mm 0 1mm; break-after: avoid; }
+p { margin: 2mm 0 3mm; }
+ul,ol { margin: 2mm 0 4mm; padding-left: 6mm; }
+li { margin: 1mm 0; }
+.topline { color: #688273; font-size: 8pt; font-weight: 700; text-transform: uppercase; letter-spacing: 1.3px; }
+.repo { font-size: 8.5pt; color: #65756c; border-left: 3px solid #92ae76; padding: 2mm 3mm; background: #f4f7f1; }
+.lede { color: #66756d; font-size: 12pt; max-width: 150mm; }
+.meta { margin: 7mm 0 0; color: #728078; font-size: 8pt; }
+.callout { border: 1px solid #e2eade; background: #f6f8f2; border-radius: 2mm; padding: 3mm 4mm; margin: 3mm 0; }
+.assumption { color: #745b35; background: #fff8e9; border-left: 3px solid #d5ab61; padding: 2.5mm 3mm; margin: 2mm 0; }
+.small { color: #6f7d75; font-size: 8.5pt; }
+table { width: 100%; border-collapse: collapse; margin: 3mm 0 4mm; font-size: 8.5pt; }
+th { background: #edf3eb; color: #355a47; text-align: left; }
+th,td { border-bottom: 1px solid #e6ebe6; padding: 2.1mm 2.5mm; vertical-align: top; }
+.section { break-inside: avoid; }
+.cover { min-height: 252mm; display: flex; flex-direction: column; justify-content: space-between; }
+.cover-bottom { border-top: 1px solid #e4ebe4; padding-top: 4mm; }
+.pill { display: inline-block; border-radius: 20px; background: #eaf3eb; color: #38664c; padding: 1mm 2.5mm; font-size: 8pt; font-weight: 700; }
+.page-break { break-before: page; }
+@media print { a { color: inherit; text-decoration: none; } }
+</style>
+</head>
+<body>
+<section class="cover">
+  <div>
+    <div class="topline">Technical design document · 09 November 2026</div>
+    <p class="repo"><strong>GitHub URL:</strong> https://github.com/ikshith-techie/sahavas-township<br><strong>Live app:</strong> Not deployed.</p>
+    <h1>A calmer way<br>to run township life.</h1>
+    <p class="lede">Sahavas is an installable, responsive resident and service-desk app for maintenance, complaint follow-up and bank-statement reconciliation.</p>
+    <p><span class="pill">CORE BUILD · WORKING DEMO</span></p>
+    <div class="callout"><strong>Scope, deliberately small.</strong> Three seeded homes demonstrate sign-in, a maintenance bill and test payment, complaint triage and status, staff bank matching with explicit approval, and a committee snapshot. It is not a production federation platform or a full 2,400-flat deployment.</div>
+  </div>
+  <div class="cover-bottom"><div class="small"><strong>Prepared for:</strong> Company A · Pune &nbsp; | &nbsp; <strong>Prototype:</strong> Sahavas Township<br>All resident and transaction data in this prototype is synthetic and based on the problem statement.</div></div>
+</section>
+
+<h2>1. Product and architecture</h2>
+<p>The hardest end-to-end risk in the brief is a mistaken bank allocation: a plausible but incorrect match can create an inaccurate flat ledger. The design therefore automates the <em>suggestion</em>, not the accounting decision. A staff member must explicitly post every confidently matched row; ambiguous rows cannot be posted through the normal action.</p>
+<table><thead><tr><th>Layer</th><th>Choice</th><th>Why</th></tr></thead><tbody>
+<tr><td>Client</td><td>Responsive vanilla JavaScript, HTML and CSS; installable web app shell.</td><td>Small, inspectable build, fast mobile interaction, and no UI framework/runtime dependency.</td></tr>
+<tr><td>Server</td><td>Node.js native HTTP server and JSON endpoints.</td><td>One process serves the UI and API; no external service is needed to run the demo.</td></tr>
+<tr><td>Database</td><td>SQLite through Node's built-in <code>node:sqlite</code>; persistent local file.</td><td>Transactions, constraints and durable demo data with no separate database service.</td></tr>
+<tr><td>Authentication</td><td>Mock resident OTP and staff password; random server-side session; HttpOnly, SameSite cookie.</td><td>Demonstrates role checks and session behavior without sending SMS or storing real contact details.</td></tr>
+</tbody></table>
+<div class="assumption"><strong>Assumption A1.</strong> A supported reviewer runtime is Node.js 22.5 or later, where <code>node:sqlite</code> is available. The project was verified with Node.js 26.</div>
+<div class="assumption"><strong>Assumption A2.</strong> This is a local/demo deployment. The fixed OTP and demo staff credential are not suitable for an internet-facing production deployment.</div>
+
+<h2>2. Data model</h2>
+<table><thead><tr><th>Table</th><th>Key fields and relationship</th><th>Purpose</th></tr></thead><tbody>
+<tr><td><code>flats</code></td><td>Flat ID (primary key), resident display name, area, synthetic UPI ID, sample overdue days.</td><td>Demo identity and billing/matching attributes.</td></tr>
+<tr><td><code>bills</code></td><td>Bill ID; flat foreign key; period; amount; paid; due date; unique flat + period.</td><td>Monthly maintenance balance: amount minus recorded payments.</td></tr>
+<tr><td><code>payments</code></td><td>Payment ID; flat and bill foreign keys; amount; unique reference; source; timestamp.</td><td>Receipt history for test payments and manually posted bank rows.</td></tr>
+<tr><td><code>complaints</code></td><td>Complaint ID; flat foreign key; text; category; urgency; status; team/assignee; response due time; optional duplicate link; resolution time.</td><td>Track requests and calculate a resolution-time measure.</td></tr>
+<tr><td><code>bank_rows</code></td><td>Row ID; import batch; original row JSON; match JSON; posted flag.</td><td>Keep each preview separate from the payment ledger until staff post.</td></tr>
+</tbody></table>
+<p>Database writes use parameterized SQL. A test payment writes the payment and increments the bill's paid amount. A posted bank row repeats the balance check immediately before writing, preventing stale previews from overpaying. Duplicate imports do not silently create payments; a row can be posted once.</p>
+<div class="assumption"><strong>Assumption A3.</strong> The submitted sample is the complete data set for the demo. Collection percentages, ageing and complaint counts are calculations over three sample flats, not estimates for all 2,400 homes.</div>
+
+<h2>3. Main flows</h2>
+<h3>Resident sign-in and maintenance</h3>
+<ol><li>Resident enters a flat ID and demo OTP; the server validates the flat and issues a role-bound session.</li><li>The home shows the current balance, open requests and recent activity. Maintenance shows area × ₹6.50, amounts received, balance and receipt history.</li><li>The test payment settles the outstanding balance, creates a transaction reference and refreshes the ledger. It moves no money and does not call a payment provider.</li></ol>
+<h3>CSV reconciliation</h3>
+<ol><li>Help desk staff uploads or pastes CSV; parser accepts quoted fields and requires amount plus reference/description.</li><li>For each row, exact outstanding amount is required, together with a flat ID in the reference or an exact synthetic UPI ID. Rows are labeled “Ready to post”, “Needs review” or “Unmatched”.</li><li>Preview alone never changes a bill. Staff explicitly posts a ready row; the server rechecks current balance, writes payment and receipt, then marks the row posted.</li><li>Unclear references, conflicting identifiers, wrong amounts, missing columns or invalid values surface as errors/queue states; they are not assigned to a guessed account.</li></ol>
+<div class="assumption"><strong>Assumption A4.</strong> This first pass treats rupee amounts as positive whole numbers, uses the latest bill for each flat, and allows either a flat reference or exact UPI ID as the independent identifier. Multi-bill allocation, refunds, bank formats beyond the documented CSV headers, and settlement-date rules need federation sign-off.</div>
+<h3>Complaints and triage</h3>
+<p>Residents submit free text. A local deterministic classifier suggests category and urgency, maps the category to a team and sets a response deadline. “Fire”, “gas”, “lift stuck” and “shock” are hard-coded critical safety signals and route to the duty manager regardless of any ordinary category rule. Similar open requests with the same category are linked by a small word-overlap check; the new report remains open. Help desk staff can change category and status; changes are persisted and reflected on resident and committee screens.</p>
+<div class="callout"><strong>Automation limit:</strong> This is transparent rule-based triage, not a trained or generative AI model. It runs locally, requires no API key and makes no claim of model confidence. “General” is a safe fallback; the help desk owns the correction path. It should be evaluated on consented, reviewed examples before broader use.</div>
+<h3>Committee snapshot</h3>
+<p>Staff-only view reports sample billed, collected and outstanding totals, percentage collected, ageing buckets and average elapsed time for resolved complaints. Unresolved requests show no invented resolution metric. The view is live from the same SQLite records, not a manually assembled spreadsheet export.</p>
+
+<h2>4. UI and design decisions</h2>
+<ul><li><strong>Resident home:</strong> outstanding amount is the dominant figure; a single payment action and clear paid state reduce the time to the most common task. Open complaints and recent receipts are directly below.</li><li><strong>Maintenance:</strong> separates billed, paid and balance, and explains the ₹/sq-ft calculation. It does not invent an interest amount from unspecified bye-laws.</li><li><strong>Complaint flow:</strong> one short form, optional explicit category suggestion and visible safety escalation; status, assigned team and response timer stay on the request card.</li><li><strong>Bank matching:</strong> input and safeguards are side by side; each row displays its reason and posting state. “Nothing posts automatically” is kept visible.</li><li><strong>Committee:</strong> four summary measures first, then ageing, service health and account-level follow-up. Every number is derived from seeded/sample records.</li></ul>
+<p>Visual language uses warm white, deep green, restrained sage and amber; rounded cards, short labels and high-contrast key actions. Layout collapses to a mobile sidebar/menu and single-column cards. PWA shell assets cache for a quick revisit; API writes and private account data are not cached offline. There are explicit loading, empty, retry/error, success-toast and paid states.</p>
+<div class="assumption"><strong>Assumption A5.</strong> English is the prototype language. Marathi/Hindi translations, translated content review and locale-specific message templates are not implemented yet.</div>
+
+<h2>5. Security, validation and tests</h2>
+<ul><li>No third-party payment, SMS or AI API calls; no secrets or real personal data are required.</li><li>Session cookie is HttpOnly and SameSite=Strict, expires after eight hours, and is Secure when <code>NODE_ENV=production</code>. Resident and staff routes are role-gated.</li><li>Server validates descriptions, enum updates, CSV size/schema/amounts and JSON bodies. SQL values are parameterized. Static responses set a restrictive same-origin content policy.</li><li>Automated tests cover critical complaint safety rules, CSV quote parsing, exact-match gating, anonymous and cross-role access, test payment/receipt, no-auto-post preview, manual bank posting and double-post rejection.</li></ul>
+<p class="small">Before production: replace mock authentication with OTP delivery and secure password management, add CSRF/origin policy, audit logs, backups, rate limits, privacy/legal review, multi-process session storage, and independent security testing.</p>
+
+<h2>6. Scope cuts and next steps</h2>
+<p>Excluded from this core: visitor approvals and photo retention, amenity bookings, notices administration, family/tenant relationship management, real gateways/UPI, real bank feeds and Tally export, file/photo complaint uploads, rating on closure, multilingual UI, push/SMS, offline guard sync, and full-cohort/report exports. These exclusions avoid implying that mock interfaces safely process real money, identity or gate operations.</p>
+<ol><li>Validate bye-law billing, late-fee rules and CSV layouts with the federation/accounts team; add reviewed interest and reconciliation cases.</li><li>Connect an audited payment provider in test mode, implement idempotent webhooks and receipt reconciliation.</li><li>Replace demo sign-in, add resident/tenant/family relations and notification preferences, and complete English/Marathi/Hindi review.</li><li>Build complaint photo handling and retention, visitor/guard flows with encrypted offline queue, then amenity scheduling.</li><li>Run usability and accessibility tests with residents, guards and staff; load-test with all 2,400 flats and operational histories; deploy with monitored backups and an approved privacy/security assessment.</li></ol>
+<div class="assumption"><strong>Assumption A6.</strong> No deployment provider, SMS provider, payment provider, bye-law schedule or approved late-fee policy was supplied. The source repository is published for review; there is no hosted live app.</div>
+</body>
+</html>

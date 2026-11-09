@@ -1,0 +1,46 @@
+# Sahavas Township — deployment guide
+
+## Run locally
+
+1. Install Node.js 22.5 or newer (the built-in `node:sqlite` module is required).
+2. From the project root, run `npm test` to execute the core and API tests.
+3. Run `npm start`.
+4. Open `http://127.0.0.1:3000` in a browser. The SQLite database is created at `data/township.sqlite` the first time the server starts.
+5. To reset demo data, stop the server and remove only `data/township.sqlite` (and its SQLite `-wal` / `-shm` sidecars if present), then start it again.
+
+No package installation or external database is needed. The service worker caches the static app shell for a faster revisit; signed-in data and write actions require the server to be online.
+
+## Demo sign-in
+
+- Resident: flat `T07-1203`, OTP `246810`. Other seeded flats: `T12-0408` (Swati Joshi) and `T21-1601` (Aamir Shaikh).
+- Help desk: username `helpdesk`, password `Township!26`.
+
+These are synthetic demo credentials. The shared OTP and fixed staff password are **not production authentication**. Do not expose this demo service to real residents or use real resident, visitor, payment or contact data.
+
+## Environment variables
+
+The local demo has defaults; these variables may be set by the runtime. Names only:
+
+- `NODE_ENV`
+- `PORT`
+- `HOST`
+- `DATA_DIR`
+- `DEMO_OTP`
+- `STAFF_USERNAME`
+- `STAFF_PASSWORD`
+
+`NODE_ENV=production` enables the Secure cookie attribute and therefore requires HTTPS. Changing demo credentials does not make the mock OTP/password flow suitable for production.
+
+## Deployment status
+
+No hosted deployment or GitHub remote was supplied or created. This project is currently a local prototype; there is no live-app URL. For a safe hosted demo, use a private, isolated environment until a real authentication strategy, persistent session store, HTTPS, backups, monitoring and security review are in place. Do not deploy the default demo credentials to a public service.
+
+## Demo workflow
+
+1. Sign in as `T07-1203` and review the maintenance bill and receipt history.
+2. Use **Pay maintenance** on `T21-1601` to exercise the test payment and ledger update. No external payment is made.
+3. Sign in as help desk, open **Bank matching**, load the sample CSV and preview it. Review each row; explicitly post only a confident match. Previewing alone never posts.
+4. Sign in as `T12-0408`, raise a water-leak complaint, then return to the help desk and update its category or status. Safety words route to the duty manager regardless of the suggested category.
+5. Open **Overview** to see the sample collection, ageing and complaint measures.
+
+The seed contains only the three flats in the supplied problem statement. Committee totals and percentages are demonstration calculations, not a complete township report.
